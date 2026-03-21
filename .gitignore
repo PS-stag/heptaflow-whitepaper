@@ -21,3 +21,4 @@
 # build output
 paper/build/
 .vscode/settings.json
+paper/heptaflow_whitepaper.tex
