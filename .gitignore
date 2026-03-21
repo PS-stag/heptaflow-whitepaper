@@ -20,3 +20,4 @@
 
 # build output
 paper/build/
+.vscode/settings.json

@@ -1,8 +1,17 @@
 \documentclass[11pt,a4paper]{article}
 
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
+% --- OLD FONT SETUP (pdflatex) ---
+% \usepackage[T1]{fontenc}
+% \usepackage[utf8]{inputenc}
+% \usepackage{lmodern}
+
+
+% --- NEW FONT SETUP (xelatex) ---
+\usepackage{fontspec}
+
+\setmainfont{Palatino}
+\setsansfont{Helvetica Neue}
+\setmonofont{Menlo}
 \usepackage[english]{babel}
 \usepackage[a4paper,margin=2.6cm]{geometry}
 \usepackage{setspace}
@@ -142,7 +151,7 @@
 
 \section{Executive Summary}
 
-Many organizations are currently undergoing a transition from traditional on-premise data warehouse environments—often built on Oracle, Informatica, DataStage, or similar technologies—towards modern, cloud-based data platforms such as Databricks.
+Many organizations are currently undergoing a transition from traditional on-premise data warehouse environments \textendash{} often built on Oracle, Informatica, DataStage, or similar technologies \textendash{} towards modern, cloud-based data platforms such as Databricks.
 
 While this shift is widely recognized as necessary, the approach taken is often limited to a technical migration: existing ETL processes are reimplemented in a new technology stack without fundamentally addressing the structural limitations of legacy systems.
 
@@ -185,7 +194,7 @@ However, their structure presents significant challenges when it comes to change
 
 In traditional environments, business logic is distributed across multiple layers:
 \begin{itemize}
-  \item ETL tools (e.g.\ Informatica workflows and mappings),
+  \item ETL tools (e.g.\ Informatica/DataStage workflows and mappings),
   \item database procedures and SQL scripts,
   \item scheduling systems and job orchestration tools,
   \item configuration files and parameter tables.
@@ -203,11 +212,11 @@ Examples include:
 \begin{itemize}
   \item conditional transformations encoded in ETL mappings,
   \item surrogate key generation strategies,
-  \item temporal validity handling (e.g.\ slowly changing dimensions),
+  \item temporal validity handling (e.g.\ slowly changing dimensions, mono- and bi-temporal patterns, technical vs. business time),
   \item implicit filtering logic or data quality rules.
 \end{itemize}
 
-These semantics are rarely documented in a structured way. Instead, they are hidden within code, tool configurations, or developer knowledge.
+These semantics are rarely documented in a structured way. Instead, they are often hidden within code, tool configurations, or developer knowledge.
 
 This creates a strong dependency on individuals and makes knowledge transfer difficult. It also increases the risk of introducing inconsistencies during changes or migrations.
 
@@ -258,7 +267,7 @@ The core challenge of data platform modernization is not the migration of code, 
 
 Without a systematic way to externalize, standardize, and control transformation logic, organizations risk rebuilding the same problems in a different technological context.
 
-A different approach is required—one that treats transformation logic as a first-class, structured artifact rather than an implementation detail.
+A different approach is required \textendash{} one that treats transformation logic as a first-class, structured artifact rather than an implementation detail.
 
 \section{Why Naive Lift-and-Shift Falls Short}
 
@@ -336,7 +345,7 @@ At the core of this approach is a shift in perspective: legacy ETL processes are
 
 For example:
 \begin{itemize}
-  \item DataStage jobs or Oracle-based ETL processes,
+  \item DataStage/Informatica jobs or Oracle-based ETL processes,
   \item XML exports of ETL workflows,
   \item metadata describing sources, transformations, and targets.
 \end{itemize}
@@ -458,19 +467,38 @@ At a high level, the architecture consists of four main layers.
 
 \begin{figure}[h!]
   \centering
-  \begin{tikzpicture}[node distance=1.55cm]
-    \node (modern) [hfbox] {\textbf{Modern Data Platform}\\[-1mm]\small (Databricks / Spark / Delta Lake)};
-    \node (txt1) [below=0.55cm of modern, hfsmall] {Generated Pipelines};
-    \node (generator) [hfbox, below=1.05cm of txt1] {\textbf{Transformation / Generator Layer}\\[-1mm]\small (XSLT / Rules / Templates / Mapping Engine)};
-    \node (txt2) [below=0.55cm of generator, hfsmall] {Structured Metadata};
-    \node (meta) [hfbox, below=1.05cm of txt2] {\textbf{Metadata \& Representation Layer}\\[-1mm]\small (XML / ETL Exports / Logical Transformation Model)};
-    \node (legacytxt) [below=0.7cm of meta, hfsmall] {Legacy ETL Systems\\[-1mm]\small (Oracle / DataStage / Informatica / SQL / Procedures)};
+  \begin{tikzpicture}[node distance=1.9cm]
 
+    % --- Modern Platform (lighter) ---
+    \node (modern) [hfbox, fill=blue!1] 
+    {\textbf{Modern Data Platform}\\(Databricks / Spark / Delta Lake)};
+
+    % --- Label ---
+    \node (txt1) [below=0.5cm of modern, hfsmall] {Generated Pipelines};
+
+    % --- Generator (highlighted core) ---
+    \node (generator) [hfbox, fill=hfblue!10, below=1.0cm of txt1] 
+    {\textbf{Transformation / Generator Layer}\\(XSLT / Rules / Templates / Mapping Engine)};
+
+    % --- Label ---
+    \node (txt2) [below=0.5cm of generator, hfsmall] {Structured Metadata};
+
+    % --- Metadata Layer ---
+    \node (meta) [hfbox, below=1.0cm of txt2] 
+    {\textbf{Metadata \& Representation Layer}\\(XML / ETL Exports / Logical Transformation Model)};
+
+    % --- Legacy Layer (slightly darker) ---
+    \node (legacytxt) [hfbox, fill=black!3, below=1.0cm of meta, align=center] 
+    {\textbf{Legacy ETL Systems}\\(Oracle / DataStage / Informatica / SQL / Procedures)};
+
+    % --- Arrows ---
     \draw[hfarrow] (generator.north) -- (txt1.south);
     \draw[hfarrow] (meta.north) -- (txt2.south);
     \draw[hfarrow] (legacytxt.north) -- (meta.south);
+
   \end{tikzpicture}
-  \caption{Conceptual architecture of the generator-based lift-and-shift approach.}
+
+  \caption{Generator-based lift-and-shift architecture for transforming legacy ETL into modern data platforms.}
   \label{fig:conceptual-architecture}
 \end{figure}
 
@@ -481,9 +509,9 @@ The process starts with existing ETL systems.
 
 Typical sources include:
 \begin{itemize}
-  \item DataStage job definitions (XML exports),
+  \item Informatica/DataStage job definitions (XML exports),
   \item Oracle-based ETL logic (PL/SQL, SQL scripts),
-  \item Informatica workflows and mappings.
+  \item Informatica/DataStage workflows and mappings.
 \end{itemize}
 
 These artifacts are not executed directly. Instead, they are extracted and interpreted as structured representations of logic.
@@ -920,7 +948,7 @@ They are built to move and transform data, but they rarely have:
 
 As a result, data consumers depend on implicit knowledge and fragile dependencies.
 
-By contrast, modern data architectures—often described in the context of Data Mesh—emphasize \emph{data products}:
+By contrast, modern data architectures \textendash{} often described in the context of Data Mesh \textendash{}emphasize \emph{data products}:
 \begin{itemize}
   \item domain-owned,
   \item well-defined and discoverable,
