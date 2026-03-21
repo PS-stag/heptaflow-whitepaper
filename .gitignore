@@ -22,3 +22,4 @@
 paper/build/
 .vscode/settings.json
 paper/heptaflow_whitepaper.tex
+publish_pdf.sh
